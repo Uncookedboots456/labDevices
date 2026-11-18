@@ -10,6 +10,7 @@ Label newlines use the <NL> marker.
 """
 import math
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -29,14 +30,36 @@ class Dia:
     def __init__(self, did, name, w, h):
         self.did, self.name, self.w, self.h = did, name, w, h
         self.cells = []
+        self.geo = {}
 
     def add(self, xml):
         self.cells.append(xml)
 
     def cell(self, cid, value, style, x, y, w, h, kind='vertex', parent='1'):
+        if parent == '1':
+            self.geo[cid] = (x, y, w, h)
         self.add('<mxCell id="%s" value="%s" style="%s" %s="1" parent="%s">'
                  '<mxGeometry x="%g" y="%g" width="%g" height="%g" as="geometry"/></mxCell>'
                  % (cid, t(value), style, kind, parent, x, y, w, h))
+
+    def anchor(self, cid, p, side):
+        """Style keys pinning one edge end to point p on vertex cid (side: exit/entry)."""
+        x, y, w, h = self.geo[cid]
+        assert x - 6 <= p[0] <= x + w + 6 and y - 6 <= p[1] <= y + h + 6, \
+            '%s: %s end %s is off vertex %s' % (self.did, side, p, cid)
+        fx = min(max((p[0] - x) / w, 0), 1)
+        fy = min(max((p[1] - y) / h, 0), 1)
+        return '{0}X={1:.4g};{0}Y={2:.4g};{0}Dx=0;{0}Dy=0;{0}Perimeter=0;'.format(side, fx, fy)
+
+    def link(self, eid, style, src, dst, p0, p1, pts=()):
+        """Edge bound to src/dst vertices, drawn from p0 to p1 through optional waypoints."""
+        style += self.anchor(src, p0, 'exit') + self.anchor(dst, p1, 'entry')
+        geo = '<mxGeometry relative="1" as="geometry">'
+        if pts:
+            geo += '<Array as="points">%s</Array>' % ''.join('<mxPoint x="%g" y="%g"/>' % q for q in pts)
+        geo += '</mxGeometry>'
+        self.add('<mxCell id="%s" style="%s" edge="1" parent="1" source="%s" target="%s">%s</mxCell>'
+                 % (eid, style, src, dst, geo))
 
     def save(self):
         xml = ('<mxfile host="app.diagrams.net"><diagram id="%s" name="%s">'
@@ -44,6 +67,14 @@ class Dia:
                'connect="1" arrows="1" fold="1" page="1" pageWidth="%d" pageHeight="%d" math="0" shadow="0">'
                '<root><mxCell id="0"/><mxCell id="1" parent="0"/>%s</root></mxGraphModel></diagram></mxfile>'
                % (self.did, self.name, self.w, self.h, ''.join(self.cells)))
+        cells = {c.get('id'): c for c in ET.fromstring(xml).iter('mxCell')}
+        for c in cells.values():
+            if c.get('edge') != '1':
+                continue
+            for end in ('source', 'target'):
+                ref = cells.get(c.get(end))
+                assert ref is not None and ref.get('vertex') == '1', \
+                    '%s: edge %s has no valid %s' % (self.did, c.get('id'), end)
         p = OUT / ('%s.drawio' % self.did)
         p.write_text(xml, encoding='utf-8')
         return p
@@ -320,8 +351,7 @@ print(ai.save())
 # ============================================================ sequence diagrams
 LIFELINE = ('shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;'
             'startSize=56;fillColor=#F5F9FF;strokeColor=#3A6EA5;fontColor=#1B3A5C;' + FONT)
-MSGROW = ('endArrow=open;endSize=11;html=1;rounded=0;strokeColor=#1B3A5C;strokeWidth=1.5;'
-          'exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0.5;entryDx=0;entryDy=0;' + FONT)
+MSGROW = 'endArrow=open;endSize=11;html=1;rounded=0;strokeColor=#1B3A5C;strokeWidth=1.5;' + FONT
 FRAME = 'rounded=0;html=1;fillColor=none;strokeColor=#666666;' + FONT
 FRAME_LABEL = 'text;html=1;align=left;verticalAlign=middle;fillColor=#FFFFFF;strokeColor=none;' + FONT
 
@@ -334,17 +364,8 @@ SCENE_META = {
 }
 
 
-def point_edge(d, eid, p0, p1, label='', dashed=False, lx=0.5, ly=-12, lw=None):
-    style = MSGROW + ('dashed=1;' if dashed else '')
-    d.add('<mxCell id="%s" style="%s" edge="1" parent="1"><mxGeometry relative="1" as="geometry">'
-          '<mxPoint x="%g" y="%g" as="sourcePoint"/><mxPoint x="%g" y="%g" as="targetPoint"/>'
-          '%s</mxGeometry></mxCell>'
-          % (eid, style, p0[0], p0[1], p1[0], p1[1],
-             '<Array as="points">%s</Array>' % ''.join('<mxPoint x="%g" y="%g"/>' % p for p in lw) if lw else ''))
-    if label:
-        d.add('<mxCell id="%sl" value="%s" style="%s" vertex="1" connectable="0" parent="%s">'
-              '<mxGeometry x="%g" y="%g" relative="1" as="geometry"><mxPoint as="offset"/>'
-              '</mxGeometry></mxCell>' % (eid, t(label), FLAB, eid, lx, ly))
+def message(d, eid, src, dst, p0, p1, dashed=False, lw=()):
+    d.link(eid, MSGROW + ('dashed=1;' if dashed else ''), src, dst, p0, p1, lw)
 
 
 def txtcell(d, cid, value, x, y, w, h=20, align='center'):
@@ -391,12 +412,13 @@ def sequence(sc):
     for k, (a, b, text) in enumerate(msgs):
         y = ys[k]
         eid = 'm%d' % k
+        la, lb = 'lif%d' % a, 'lif%d' % b
         if a == b:
-            point_edge(d, eid, (xs[a] + 8, y), (xs[a] + 8, y + 26), '', is_reply(text),
-                       lw=[(xs[a] + 74, y), (xs[a] + 74, y + 26)])
+            message(d, eid, la, la, (xs[a] + 8, y), (xs[a] + 8, y + 26), is_reply(text),
+                    lw=[(xs[a] + 74, y), (xs[a] + 74, y + 26)])
             txtcell(d, '%sl' % eid, text, xs[a] + 84, y + 4, 210, align='left')
         else:
-            point_edge(d, eid, (xs[a], y), (xs[b], y), '', is_reply(text))
+            message(d, eid, la, lb, (xs[a], y), (xs[b], y), is_reply(text))
             msg_label(d, eid, (xs[a] + xs[b]) / 2, y, text)
     return d.save()
 
@@ -470,11 +492,7 @@ def communication(sc):
                 p0, p1 = (x - 12, by + 4 * sgn), (x + 14, by + 4 * sgn)
                 wp = [(x - 12, by + 50 * sgn), (x + 14, by + 50 * sgn)]
                 lx, ly, al = (x + 22, by + 8, 'left') if sgn > 0 else (x + 22, by - 66, 'left')
-            d.add('<mxCell id="%s" style="%s" edge="1" parent="1"><mxGeometry relative="1" as="geometry">'
-                  '<mxPoint x="%g" y="%g" as="sourcePoint"/><mxPoint x="%g" y="%g" as="targetPoint"/>'
-                  '<Array as="points">%s</Array></mxGeometry></mxCell>'
-                  % (eid, MSGROW, p0[0], p0[1], p1[0], p1[1],
-                     ''.join('<mxPoint x="%g" y="%g"/>' % q for q in wp)))
+            message(d, eid, 'obj%d' % a, 'obj%d' % a, p0, p1, lw=wp)
             nos = ', '.join(m[2].split(' ')[0] for m in group)
             txtcell(d, '%sl' % eid, nos + ' 自身判断', lx, ly, 180, 22, align=al)
             continue
@@ -493,12 +511,11 @@ def communication(sc):
             u = (ux, uy)
             p0 = line_rect(pa, (pa[0] + nx * off, pa[1] + ny * off), u, w, h, True)
             p1 = line_rect(pb, (pb[0] + nx * off, pb[1] + ny * off), u, w, h, False)
+            src, dst = 'obj%d' % a, 'obj%d' % b
             if not fwd:
-                p0, p1 = p1, p0
+                p0, p1, src, dst = p1, p0, dst, src
             eid = 'dir%d%d%d' % (a, b, idx)
-            d.add('<mxCell id="%s" style="%s" edge="1" parent="1"><mxGeometry relative="1" as="geometry">'
-                  '<mxPoint x="%g" y="%g" as="sourcePoint"/><mxPoint x="%g" y="%g" as="targetPoint"/>'
-                  '</mxGeometry></mxCell>' % (eid, MSGROW, p0[0], p0[1], p1[0], p1[1]))
+            message(d, eid, src, dst, p0, p1)
             nos = ', '.join(m[2].split(' ')[0] for m in ms)
             lx = (p0[0] + p1[0]) / 2 + nx * 14 * sgn - 45
             ly = (p0[1] + p1[1]) / 2 + ny * 14 * sgn - 11
@@ -523,15 +540,9 @@ ARROW = ('endArrow=open;endSize=11;html=1;rounded=0;strokeColor=#1B3A5C;strokeWi
 DASH = 'dashed=1;' + ARROW
 
 
-def edge(d, eid, p0, p1, label='', pts=(), lx=None, ly=None, dashed=False, w=220, align='center'):
-    geo = ('<mxGeometry relative="1" as="geometry">'
-           '<mxPoint x="%g" y="%g" as="sourcePoint"/><mxPoint x="%g" y="%g" as="targetPoint"/>'
-           % (p0[0], p0[1], p1[0], p1[1]))
-    if pts:
-        geo += '<Array as="points">%s</Array>' % ''.join('<mxPoint x="%g" y="%g"/>' % q for q in pts)
-    geo += '</mxGeometry>'
-    d.add('<mxCell id="%s" style="%s" edge="1" parent="1">%s</mxCell>'
-          % (eid, DASH if dashed else ARROW, geo))
+def edge(d, eid, src, dst, p0, p1, label='', pts=(), lx=None, ly=None, dashed=False, w=220,
+         align='center'):
+    d.link(eid, DASH if dashed else ARROW, src, dst, p0, p1, pts)
     if label:
         cx = lx if lx is not None else (p0[0] + p1[0]) / 2
         cy = ly if ly is not None else (p0[1] + p1[1]) / 2 - 22
@@ -544,16 +555,16 @@ def device_state():
     d.cell('u', '未知', STATE, 170, 265, 180, 90)
     d.cell('n', '正常', STATE, 540, 265, 180, 90)
     d.cell('e', '异常', STATE, 900, 265, 180, 90)
-    edge(d, 't0', (86, 313), (170, 313), '')
-    edge(d, 't1', (350, 310), (540, 310), '有效采样 [结果正常]', lx=445, ly=250, w=240)
-    edge(d, 't2', (720, 310), (900, 310), '新采样 [异常]', lx=810, ly=250, w=200)
-    edge(d, 't3', (900, 360), (720, 360), '新采样 [正常]', pts=[(880, 400), (740, 400)],
+    edge(d, 't0', 's', 'u', (86, 313), (170, 313), '')
+    edge(d, 't1', 'u', 'n', (350, 310), (540, 310), '有效采样 [结果正常]', lx=445, ly=250, w=240)
+    edge(d, 't2', 'n', 'e', (720, 310), (900, 310), '新采样 [异常]', lx=810, ly=250, w=200)
+    edge(d, 't3', 'e', 'n', (930, 355), (690, 355), '新采样 [正常]', pts=[(930, 400), (690, 400)],
          lx=810, ly=418, w=200)
-    edge(d, 't4', (630, 265), (240, 265), '状态采样 [通信失败或不可判定]', pts=[(630, 195), (240, 195)],
-         lx=430, ly=173, w=300)
-    edge(d, 't5', (990, 265), (300, 265), '状态采样 [通信失败或不可判定]', pts=[(990, 120), (300, 120)],
-         lx=660, ly=98, w=300)
-    edge(d, 't6', (260, 355), (990, 355), '有效采样 [结果异常]', pts=[(260, 520), (990, 520)],
+    edge(d, 't4', 'n', 'u', (630, 265), (240, 265), '状态采样 [通信失败或不可判定]',
+         pts=[(630, 195), (240, 195)], lx=430, ly=173, w=300)
+    edge(d, 't5', 'e', 'u', (990, 265), (300, 265), '状态采样 [通信失败或不可判定]',
+         pts=[(990, 120), (300, 120)], lx=660, ly=98, w=300)
+    edge(d, 't6', 'u', 'e', (260, 355), (990, 355), '有效采样 [结果异常]', pts=[(260, 520), (990, 520)],
          lx=625, ly=498, w=240)
     d.cell('note', '对象是设备状态的观测摘要，不是设备接入生命周期；'
                    '<NL>该摘要随设备持续采样更新，因此不设终止状态。'
@@ -569,12 +580,12 @@ def ticket_state():
     d.cell('a', '已登记', STATE, 170, 245, 190, 90)
     d.cell('b', '处理中', STATE, 500, 245, 190, 90)
     d.cell('c', '处理信息已记录', STATE, 830, 245, 200, 90)
-    edge(d, 't1', (86, 293), (170, 290), '提交报修或异常建单 [登记成功]', lx=230, ly=360, w=300)
-    edge(d, 't2', (360, 290), (500, 290), '开始处理', lx=430, ly=238, w=160)
-    edge(d, 't3', (690, 290), (830, 290), '提交处理信息 [保存成功]', lx=760, ly=238, w=260)
-    edge(d, 't4', (930, 335), (595, 335), '继续补充处理信息',
+    edge(d, 't1', 's', 'a', (86, 293), (170, 293), '提交报修或异常建单 [登记成功]', lx=230, ly=360, w=300)
+    edge(d, 't2', 'a', 'b', (360, 290), (500, 290), '开始处理', lx=430, ly=238, w=160)
+    edge(d, 't3', 'b', 'c', (690, 290), (830, 290), '提交处理信息 [保存成功]', lx=760, ly=238, w=260)
+    edge(d, 't4', 'c', 'b', (930, 335), (595, 335), '继续补充处理信息',
          pts=[(930, 450), (595, 450)], lx=762, ly=430, w=200)
-    edge(d, 't5', (560, 245), (630, 245), '请求 AI 辅助 [需要辅助诊断] / 取得建议或报告失败',
+    edge(d, 't5', 'b', 'b', (560, 245), (630, 245), '请求 AI 辅助 [需要辅助诊断] / 取得建议或报告失败',
          pts=[(560, 175), (630, 175)], lx=595, ly=150, w=360)
     d.cell('note', '候选信息生命周期：未规定关闭状态与审批流，'
                    '<NL>关闭条件满足前不设终止状态。'
@@ -595,16 +606,17 @@ def component():
     }
     for k, (txt, x, y, w, h) in boxes.items():
         d.cell(k, txt, COMP, x, y, w, h)
-    edge(d, 'd1', (330, 210), (450, 130), '请求使用或接入', dashed=True, lx=330, ly=96, w=220)
-    edge(d, 'd2', (330, 230), (450, 590), '监测、运维或工单请求', pts=[(400, 230), (400, 590)],
-         dashed=True, lx=300, ly=400, w=240)
-    edge(d, 'd3', (620, 190), (620, 300), '身份 权限 日志', dashed=True, lx=760, ly=232, w=200)
-    edge(d, 'd7', (230, 270), (450, 340), '权限分配或日志审计请求', pts=[(230, 340)],
+    edge(d, 'd1', 'ui', 'use', (330, 210), (450, 130), '请求使用或接入', dashed=True, lx=330, ly=96, w=220)
+    edge(d, 'd2', 'ui', 'mon', (330, 230), (450, 590), '监测、运维或工单请求',
+         pts=[(400, 230), (400, 590)], dashed=True, lx=300, ly=400, w=240)
+    edge(d, 'd3', 'use', 'perm', (620, 190), (620, 300), '身份 权限 日志', dashed=True, lx=760, ly=232,
+         w=200)
+    edge(d, 'd7', 'ui', 'perm', (230, 270), (450, 340), '权限分配或日志审计请求', pts=[(230, 340)],
          dashed=True, lx=345, ly=318, w=240)
-    edge(d, 'd4', (790, 130), (930, 130), '设备调用', dashed=True, lx=860, ly=100, w=160)
-    edge(d, 'd5', (790, 560), (930, 160), '状态及运维交互', pts=[(860, 560), (860, 160)],
+    edge(d, 'd4', 'use', 'dev', (790, 130), (930, 130), '设备调用', dashed=True, lx=860, ly=100, w=160)
+    edge(d, 'd5', 'mon', 'dev', (790, 560), (930, 160), '状态及运维交互', pts=[(860, 560), (860, 160)],
          dashed=True, lx=990, ly=350, w=220)
-    edge(d, 'd6', (790, 620), (930, 620), '[请求AI辅助]', dashed=True, lx=860, ly=640, w=200)
+    edge(d, 'd6', 'mon', 'ai', (790, 620), (930, 620), '[请求AI辅助]', dashed=True, lx=860, ly=640, w=200)
     d.cell('note', '构件按职责划分，不意味独立进程或微服务；'
                    '<NL>部署节点、数据库位置与 AI 服务提供方仍待明确。',
            NOTE, 60, 660, 640, 80)
@@ -619,11 +631,11 @@ def deploy():
     d.cell('db', '«artifact»<NL>逻辑数据存储（位置待定）', ARTIFACT, 400, 430, 360, 120)
     d.cell('dev', '«device»<NL>异构设备<NL>USB / 蓝牙 / Zigbee<NL>适配或网关位置待定', COMP, 900, 80, 300, 220)
     d.cell('ai', '«node»<NL>AI Agent 服务<NL>位置与协议待明确', COMP, 900, 470, 300, 180)
-    edge(d, 'd1', (280, 220), (360, 220), '局域网（协议待定）', lx=320, ly=320, w=200)
-    edge(d, 'd2', (760, 260), (900, 260), '设备通信', lx=830, ly=232, w=160)
-    edge(d, 'd3', (760, 330), (900, 480), 'AI 接口（协议待定）',
+    edge(d, 'd1', 'term', 'host', (280, 220), (360, 220), '局域网（协议待定）', lx=320, ly=320, w=200)
+    edge(d, 'd2', 'app', 'dev', (760, 260), (900, 260), '设备通信', lx=830, ly=232, w=160)
+    edge(d, 'd3', 'app', 'ai', (760, 330), (900, 480), 'AI 接口（协议待定）',
          pts=[(830, 330), (830, 480)], lx=845, ly=452, w=170)
-    edge(d, 'd4', (580, 370), (580, 430), '读写', lx=640, ly=392, w=80)
+    edge(d, 'd4', 'app', 'db', (580, 370), (580, 430), '读写', lx=640, ly=392, w=80)
     d.cell('note', '候选部署示意：不确认端口、云厂商、数据库或容器。'
                    '<NL>AI 服务与异构设备都在系统边界外，只参与 UC2/UC9/EXT2。',
            NOTE, 40, 700, 640, 90)
