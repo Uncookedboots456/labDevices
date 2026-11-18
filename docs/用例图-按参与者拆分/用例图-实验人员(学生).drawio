@@ -1,0 +1,33 @@
+<mxfile host="Electron">
+  <diagram id="uc-Stu" name="用例图-实验人员(学生)">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1180" pageHeight="600" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="Boundary" value="实验室设备统一管理与智能运维系统" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#333333;verticalAlign=top;align=center;spacingTop=8;fontStyle=1;fontFamily=Noto Sans CJK SC;fontSize=15;" vertex="1" parent="1"><mxGeometry x="150" y="30" width="700" height="395" as="geometry"/></mxCell>
+        <mxCell id="Stu" value="实验人员(学生)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Noto Sans CJK SC;fontSize=13;" vertex="1" parent="1"><mxGeometry x="60" y="210" width="30" height="60" as="geometry"/></mxCell>
+        <mxCell id="UC1" value="申请使用设备" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F5F9FF;strokeColor=#3A6EA5;fontFamily=Noto Sans CJK SC;fontSize=13;" vertex="1" parent="1"><mxGeometry x="210" y="95" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="UC2" value="操作设备" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F5F9FF;strokeColor=#3A6EA5;fontFamily=Noto Sans CJK SC;fontSize=13;" vertex="1" parent="1"><mxGeometry x="210" y="175" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="UC3" value="查看设备状态" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F5F9FF;strokeColor=#3A6EA5;fontFamily=Noto Sans CJK SC;fontSize=13;" vertex="1" parent="1"><mxGeometry x="210" y="255" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="UC4" value="提交故障报修" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F5F9FF;strokeColor=#3A6EA5;fontFamily=Noto Sans CJK SC;fontSize=13;" vertex="1" parent="1"><mxGeometry x="210" y="335" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="INC1" value="权限校验" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F5F9FF;strokeColor=#3A6EA5;fontFamily=Noto Sans CJK SC;fontSize=13;" vertex="1" parent="1"><mxGeometry x="650" y="215" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="INC2" value="行为留痕" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F5F9FF;strokeColor=#3A6EA5;fontFamily=Noto Sans CJK SC;fontSize=13;" vertex="1" parent="1"><mxGeometry x="650" y="295" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="INC3" value="登录认证" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F5F9FF;strokeColor=#3A6EA5;fontFamily=Noto Sans CJK SC;fontSize=13;" vertex="1" parent="1"><mxGeometry x="650" y="135" width="150" height="50" as="geometry"/></mxCell>
+        <mxCell id="N3" value="行为留痕：记录谁、何时、对哪台设备、&#10;做了什么、结果如何；日志只追加不可改" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#FFF9C4;strokeColor=#B8A000;align=left;spacingLeft=6;fontFamily=Noto Sans CJK SC;fontSize=12;" vertex="1" parent="1"><mxGeometry x="890" y="295" width="250" height="50" as="geometry"/></mxCell>
+        <mxCell id="NInh" value="子参与者「实验室管理员」泛化（继承）自本参与者，&#10;同样拥有本图中的全部用例" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#FFF9C4;strokeColor=#B8A000;align=left;spacingLeft=6;fontFamily=Noto Sans CJK SC;fontSize=12;" vertex="1" parent="1"><mxGeometry x="40" y="455" width="330" height="50" as="geometry"/></mxCell>
+        <mxCell id="n6" value="" style="endArrow=none;html=1;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="Stu" target="UC1"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="n7" value="" style="endArrow=none;html=1;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="Stu" target="UC2"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="n8" value="" style="endArrow=none;html=1;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="Stu" target="UC3"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="n9" value="" style="endArrow=none;html=1;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="Stu" target="UC4"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="n17" value="«include»" style="dashed=1;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;html=1;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="UC2" target="INC1"><mxGeometry x="0.44" relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="n18" value="«include»" style="dashed=1;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;html=1;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="UC2" target="INC2"><mxGeometry x="0.00" relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="n19" value="«include»" style="dashed=1;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;html=1;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="UC1" target="INC3"><mxGeometry x="0.00" relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="n20" value="«include»" style="dashed=1;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;html=1;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="UC2" target="INC3"><mxGeometry x="0.00" relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="n22" value="«include»" style="dashed=1;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;html=1;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="UC1" target="INC2"><mxGeometry x="-0.56" relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="n23" value="«include»" style="dashed=1;labelBackgroundColor=#ffffff;endArrow=open;endSize=10;html=1;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="UC4" target="INC2"><mxGeometry x="0.00" relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="n30" value="" style="dashed=1;endArrow=none;html=1;strokeColor=#B8A000;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="N3" target="INC2"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+        <mxCell id="eInh" value="" style="dashed=1;endArrow=none;html=1;strokeColor=#B8A000;fontFamily=Noto Sans CJK SC;fontSize=13;" edge="1" parent="1" source="NInh" target="Stu"><mxGeometry relative="1" as="geometry"></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
