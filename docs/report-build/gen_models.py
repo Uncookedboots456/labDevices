@@ -541,12 +541,12 @@ DASH = 'dashed=1;' + ARROW
 
 
 def edge(d, eid, src, dst, p0, p1, label='', pts=(), lx=None, ly=None, dashed=False, w=220,
-         align='center'):
+         align='center', h=22):
     d.link(eid, DASH if dashed else ARROW, src, dst, p0, p1, pts)
     if label:
         cx = lx if lx is not None else (p0[0] + p1[0]) / 2
         cy = ly if ly is not None else (p0[1] + p1[1]) / 2 - 22
-        txtcell(d, eid + 'l', label, cx - w / 2 if align == 'center' else cx, cy, w, 22, align)
+        txtcell(d, eid + 'l', label, cx - w / 2 if align == 'center' else cx, cy, w, h, align)
 
 
 def device_state():
@@ -575,22 +575,23 @@ def device_state():
 
 
 def ticket_state():
-    d = Dia('state-ticket', '状态图 图2-17 故障工单信息', 1180, 660)
-    d.cell('s', '', START, 60, 280, 26, 26)
-    d.cell('a', '已登记', STATE, 170, 245, 190, 90)
-    d.cell('b', '处理中', STATE, 500, 245, 190, 90)
-    d.cell('c', '处理信息已记录', STATE, 830, 245, 200, 90)
-    edge(d, 't1', 's', 'a', (86, 293), (170, 293), '提交报修或异常建单 [登记成功]', lx=230, ly=360, w=300)
-    edge(d, 't2', 'a', 'b', (360, 290), (500, 290), '开始处理', lx=430, ly=238, w=160)
-    edge(d, 't3', 'b', 'c', (690, 290), (830, 290), '提交处理信息 [保存成功]', lx=760, ly=238, w=260)
-    edge(d, 't4', 'c', 'b', (930, 335), (595, 335), '继续补充处理信息',
-         pts=[(930, 450), (595, 450)], lx=762, ly=430, w=200)
-    edge(d, 't5', 'b', 'b', (560, 245), (630, 245), '请求 AI 辅助 [需要辅助诊断] / 取得建议或报告失败',
-         pts=[(560, 175), (630, 175)], lx=595, ly=150, w=360)
+    d = Dia('state-ticket', '状态图 图2-17 故障工单信息', 1290, 660)
+    d.cell('s', '', START, 40, 280, 26, 26)
+    d.cell('a', '已登记', STATE, 290, 245, 190, 90)
+    d.cell('b', '处理中', STATE, 660, 245, 190, 90)
+    d.cell('c', '处理信息已记录', STATE, 1030, 245, 200, 90)
+    edge(d, 't1', 's', 'a', (66, 293), (290, 293), '提交报修或异常建单 [登记成功]', lx=178, ly=262, w=220)
+    edge(d, 't2', 'a', 'b', (480, 290), (660, 290), '开始处理', lx=570, ly=262, w=160)
+    edge(d, 't3', 'b', 'c', (850, 290), (1030, 290), '提交处理信息<NL>[保存成功]', lx=940, ly=244, w=170,
+         h=42)
+    edge(d, 't4', 'c', 'b', (1130, 335), (755, 335), '继续补充处理信息',
+         pts=[(1130, 450), (755, 450)], lx=942, ly=424, w=200)
+    edge(d, 't5', 'b', 'b', (720, 245), (790, 245), '请求 AI 辅助 [需要辅助诊断] / 取得建议或报告失败',
+         pts=[(720, 175), (790, 175)], lx=755, ly=148, w=380)
     d.cell('note', '候选信息生命周期：未规定关闭状态与审批流，'
                    '<NL>关闭条件满足前不设终止状态。'
                    '<NL>AI 辅助不推进状态；工单最终状态集与关闭条件待明确。',
-           NOTE, 170, 520, 660, 100)
+           NOTE, 290, 520, 660, 100)
     return d.save()
 
 
@@ -606,17 +607,17 @@ def component():
     }
     for k, (txt, x, y, w, h) in boxes.items():
         d.cell(k, txt, COMP, x, y, w, h)
-    edge(d, 'd1', 'ui', 'use', (330, 210), (450, 130), '请求使用或接入', dashed=True, lx=330, ly=96, w=220)
-    edge(d, 'd2', 'ui', 'mon', (330, 230), (450, 590), '监测、运维或工单请求',
-         pts=[(400, 230), (400, 590)], dashed=True, lx=300, ly=400, w=240)
-    edge(d, 'd3', 'use', 'perm', (620, 190), (620, 300), '身份 权限 日志', dashed=True, lx=760, ly=232,
-         w=200)
-    edge(d, 'd7', 'ui', 'perm', (230, 270), (450, 340), '权限分配或日志审计请求', pts=[(230, 340)],
-         dashed=True, lx=345, ly=318, w=240)
+    edge(d, 'd1', 'ui', 'use', (330, 170), (450, 170), '请求使用或接入', dashed=True, lx=390, ly=144, w=120)
+    edge(d, 'd2', 'ui', 'mon', (120, 270), (450, 590), '监测、运维或工单请求', pts=[(120, 590)],
+         dashed=True, lx=285, ly=566, w=200)
+    edge(d, 'd3', 'use', 'perm', (620, 190), (620, 300), '身份 权限 日志', dashed=True, lx=632, ly=234,
+         w=140, align='left')
+    edge(d, 'd7', 'ui', 'perm', (230, 270), (450, 360), '权限分配或日志审计请求', pts=[(230, 360)],
+         dashed=True, lx=340, ly=336, w=220)
     edge(d, 'd4', 'use', 'dev', (790, 130), (930, 130), '设备调用', dashed=True, lx=860, ly=100, w=160)
     edge(d, 'd5', 'mon', 'dev', (790, 560), (930, 160), '状态及运维交互', pts=[(860, 560), (860, 160)],
-         dashed=True, lx=990, ly=350, w=220)
-    edge(d, 'd6', 'mon', 'ai', (790, 620), (930, 620), '[请求AI辅助]', dashed=True, lx=860, ly=640, w=200)
+         dashed=True, lx=870, ly=340, w=140, align='left')
+    edge(d, 'd6', 'mon', 'ai', (790, 620), (930, 620), '[请求AI辅助]', dashed=True, lx=860, ly=596, w=140)
     d.cell('note', '构件按职责划分，不意味独立进程或微服务；'
                    '<NL>部署节点、数据库位置与 AI 服务提供方仍待明确。',
            NOTE, 60, 660, 640, 80)
@@ -625,20 +626,196 @@ def component():
 
 def deploy():
     d = Dia('deploy', '部署图 图2-19', 1340, 830)
-    d.cell('term', '«device»<NL>人员终端<NL>交互客户端', COMP, 40, 150, 240, 140)
+    d.cell('term', '«device»<NL>人员终端<NL>交互客户端', COMP, 40, 150, 200, 140)
     d.cell('host', '«device» 候选管理主机<NL>软路由或局域网 Linux 主机（方案待定）', NODE, 360, 50, 440, 620)
     d.cell('app', '«artifact»<NL>设备管理应用<NL>含逻辑构件', ARTIFACT, 400, 220, 360, 150)
     d.cell('db', '«artifact»<NL>逻辑数据存储（位置待定）', ARTIFACT, 400, 430, 360, 120)
     d.cell('dev', '«device»<NL>异构设备<NL>USB / 蓝牙 / Zigbee<NL>适配或网关位置待定', COMP, 900, 80, 300, 220)
     d.cell('ai', '«node»<NL>AI Agent 服务<NL>位置与协议待明确', COMP, 900, 470, 300, 180)
-    edge(d, 'd1', 'term', 'host', (280, 220), (360, 220), '局域网（协议待定）', lx=320, ly=320, w=200)
+    edge(d, 'd1', 'term', 'host', (240, 220), (360, 220), '局域网<NL>（协议待定）', lx=300, ly=174, w=110,
+         h=42)
     edge(d, 'd2', 'app', 'dev', (760, 260), (900, 260), '设备通信', lx=830, ly=232, w=160)
     edge(d, 'd3', 'app', 'ai', (760, 330), (900, 480), 'AI 接口（协议待定）',
-         pts=[(830, 330), (830, 480)], lx=845, ly=452, w=170)
-    edge(d, 'd4', 'app', 'db', (580, 370), (580, 430), '读写', lx=640, ly=392, w=80)
+         pts=[(830, 330), (830, 480)], lx=838, ly=385, w=170, align='left')
+    edge(d, 'd4', 'app', 'db', (580, 370), (580, 430), '读写', lx=590, ly=389, w=60, align='left')
     d.cell('note', '候选部署示意：不确认端口、云厂商、数据库或容器。'
                    '<NL>AI 服务与异构设备都在系统边界外，只参与 UC2/UC9/EXT2。',
            NOTE, 40, 700, 640, 90)
+    return d.save()
+
+
+# ================================== candidate design (not in report; see docs/development-plan.md)
+PKG = ('shape=folder;tabWidth=110;tabHeight=22;tabPosition=left;whiteSpace=wrap;html=1;spacingTop=22;'
+       'fillColor=#F5F9FF;strokeColor=#3A6EA5;fontColor=#1B3A5C;' + FONT)
+PKG_OUTER = ('shape=folder;tabWidth=110;tabHeight=22;tabPosition=left;html=1;verticalAlign=top;align=left;'
+             'spacingLeft=12;spacingTop=24;fontStyle=1;fillColor=#FFFFFF;strokeColor=#3A6EA5;'
+             'fontColor=#1B3A5C;' + FONT)
+REALIZE = ('endArrow=block;endFill=0;endSize=14;dashed=1;html=1;rounded=0;strokeColor=#1B3A5C;'
+           'strokeWidth=1.5;' + FONT)
+ER_REL = 'html=1;rounded=0;endFill=0;startFill=0;endSize=14;startSize=14;strokeColor=#1B3A5C;strokeWidth=1.5;'
+ER_END = {'1': 'ERmandOne', '0..1': 'ERzeroToOne', '0..*': 'ERzeroToMany'}
+
+
+def note_label(d, cid, text, x, y, w=160, h=22):
+    txtcell(d, cid, text, x, y, w, h, align='left')
+
+
+def dclass(d, cid, name, attrs, ops, x, y, w, head=28, dashed=False):
+    """Class or entity box: attribute and operation compartments are optional, height follows lines."""
+    style = BOX.replace('startSize=28', 'startSize=%d' % head) + ('dashed=1;' if dashed else '')
+    ah = 20 * (attrs.count('<NL>') + 1) + 14 if attrs else 0
+    oh = 20 * (ops.count('<NL>') + 1) + 14 if ops else 0
+    d.cell(cid, name, style, x, y, w, head + ah + oh)
+    if attrs:
+        d.cell(cid + '_a', attrs, ATTR + ('dashed=1;' if dashed else ''), 0, head, w, ah, parent=cid)
+    if ops:
+        d.cell(cid + '_o', ops, OPS, 0, head + ah, w, oh, parent=cid)
+    return y + head + ah + oh
+
+
+def package():
+    d = Dia('package', '候选包图', 1600, 1010)
+    W, H = 300, 110
+    d.cell('ui', '用户交互<NL>三类人员入口', PKG, 610, 40, W, 90)
+    d.cell('db', '数据存储<NL>技术待定（B09）', PKG, 1220, 40, W, 90)
+    d.cell('biz', '业务功能', PKG_OUTER, 40, 190, 1520, 440)
+    pk = {
+        'use': ('设备使用<NL>UC1 申请 · UC2 操作 · UC3 查看状态', 80, 290),
+        'con': ('设备接入<NL>UC5 · G1–G3', 460, 290),
+        'auth': ('身份与权限<NL>INC3 认证 · INC1 校验 · UC6 分配', 840, 290),
+        'log': ('日志审计<NL>INC2 记录 · UC7 审计', 1220, 290),
+        'mon': ('监测与运维<NL>UC9 监测 · UC10 运维', 840, 470),
+        'tkt': ('故障工单<NL>UC4 · UC8 · UC11 · EXT1', 1220, 470),
+    }
+    for k, (txt, x, y) in pk.items():
+        d.cell(k, txt, PKG, x, y, W, H)
+    d.cell('dev', '设备适配<NL>USB / 蓝牙 / Zigbee 适配实现（G1–G3）', PKG, 80, 720, 1060, H)
+    d.cell('ai', 'AI 交互适配<NL>EXT2', PKG, 1220, 720, W, H)
+    edge(d, 'p1', 'ui', 'biz', (760, 130), (760, 190), '«use»', dashed=True, lx=770, ly=148, w=60,
+         align='left')
+    edge(d, 'p2', 'biz', 'db', (1370, 190), (1370, 130), '持久化', dashed=True, lx=1380, ly=148, w=80,
+         align='left')
+    edge(d, 'p3', 'use', 'auth', (200, 290), (920, 290), 'INC3 认证 · INC1 校验', pts=[(200, 262), (920, 262)],
+         dashed=True, lx=560, ly=238, w=200)
+    edge(d, 'p4', 'use', 'log', (140, 290), (1340, 290), 'INC2 记录日志', pts=[(140, 232), (1340, 232)],
+         dashed=True, lx=1100, ly=238, w=140)
+    edge(d, 'p5', 'con', 'auth', (760, 345), (840, 345), 'INC3', dashed=True, lx=800, ly=320, w=60)
+    edge(d, 'p6', 'mon', 'tkt', (1140, 525), (1220, 525), 'EXT1', dashed=True, lx=1180, ly=500, w=60)
+    edge(d, 'p7', 'use', 'dev', (230, 400), (230, 720), '下发指令', dashed=True, lx=238, ly=650, w=100,
+         align='left')
+    edge(d, 'p8', 'con', 'dev', (610, 400), (610, 720), '接入', dashed=True, lx=618, ly=650, w=60,
+         align='left')
+    edge(d, 'p9', 'mon', 'dev', (990, 580), (990, 720), '读取状态 · 运维动作', dashed=True, lx=998, ly=650,
+         w=160, align='left')
+    edge(d, 'p10', 'tkt', 'ai', (1370, 580), (1370, 720), '[请求AI辅助]', dashed=True, lx=1378, ly=650,
+         w=140, align='left')
+    d.cell('note', '候选包划分，用于组织后续代码，不代表已实现模块；虚线箭头为包依赖。'
+                   '<NL>与图2-18对应：设备使用、设备接入 → 设备使用与接入；身份与权限、日志审计 → 权限与日志；'
+                   '<NL>监测与运维、故障工单 → 状态监测、运维与工单。其他入口的访问控制见 B10，不画成 include。'
+                   '<NL>EXT1 只依赖故障工单，不指向 UC10；AI 交互适配只返回建议，不依赖设备适配。',
+           NOTE, 40, 870, 1100, 110)
+    return d.save()
+
+
+def design_adapters():
+    d = Dia('design-adapters', '设备与AI适配接口设计类图', 1700, 1160)
+    callers = [('c1', '设备使用服务<NL>UC2 · UC3', 40), ('c2', '设备接入服务<NL>UC5 · G1–G3', 320),
+               ('c3', '监测与运维服务<NL>UC9 · UC10', 600), ('c4', '工单处理服务<NL>UC11 · EXT2', 1270)]
+    for cid, txt, x in callers:
+        d.cell(cid, '«control»<NL>' + txt, COMP, x, 40, 240, 90)
+    dclass(d, 'reg', '设备适配注册表', '适配器映射：接入类型 → 适配器',
+           '取得适配器(接入类型) : 设备适配接口', 280, 220, 360)
+    dclass(d, 'dif', '«interface»<NL>设备适配接口', '',
+           '接入(接入参数) : 接入结果<NL>下发指令(设备标识, 指令) : 执行结果<NL>读取状态(设备标识) : 状态采样'
+           '<NL>执行运维动作(设备标识, 动作) : 执行结果（B05）', 280, 400, 420, head=48)
+    dclass(d, 'res', '«datatype»<NL>执行结果', '结果：成功 / 失败 / 未知<NL>设备返回信息', '', 800, 360, 260,
+           head=48)
+    dclass(d, 'smp', '«datatype»<NL>状态采样', '是否取得<NL>原始读数（随设备，B08）<NL>采样时间', '',
+           800, 500, 260, head=48)
+    for cid, name, attr, x in (('usb', 'USB适配器（G1）', '串口或 HID 参数（B08）', 40),
+                               ('ble', '蓝牙适配器（G2）', '蓝牙地址与服务标识（B08）', 360),
+                               ('zig', 'Zigbee适配器（G3）', '协调器或网关连接（B08）', 680)):
+        dclass(d, cid, name, attr, '', x, 680, 260)
+    edge(d, 'u1', 'c1', 'reg', (160, 130), (280, 250), '«use»', pts=[(160, 250)], dashed=True,
+         lx=168, ly=180, w=60, align='left')
+    edge(d, 'u2', 'c2', 'reg', (440, 130), (440, 220), '«use»', dashed=True, lx=448, ly=164, w=60,
+         align='left')
+    edge(d, 'u3', 'c3', 'reg', (720, 130), (640, 250), '«use»', pts=[(720, 250)], dashed=True,
+         lx=728, ly=180, w=60, align='left')
+    edge(d, 'a1', 'reg', 'dif', (460, 316), (460, 400), '按接入类型选取', lx=470, ly=346, w=140,
+         align='left')
+    txtcell(d, 'a1m0', '1', 438, 318, 20)
+    txtcell(d, 'a1m1', '1..*', 420, 376, 36)
+    edge(d, 'r1', 'dif', 'res', (700, 430), (800, 430), '«use»', dashed=True, lx=750, ly=406, w=60)
+    edge(d, 'r2', 'dif', 'smp', (700, 520), (800, 520), '«use»', dashed=True, lx=750, ly=496, w=60)
+    d.link('g1', REALIZE, 'usb', 'dif', (170, 680), (380, 542), [(170, 610), (380, 610)])
+    d.link('g2', REALIZE, 'ble', 'dif', (490, 680), (490, 542))
+    d.link('g3', REALIZE, 'zig', 'dif', (740, 680), (600, 542), [(740, 610), (600, 610)])
+
+    dclass(d, 'aif', '«interface»<NL>AI诊断接口', '',
+           '请求诊断(诊断上下文) : 诊断建议<NL>超时或失败时返回“辅助不可用”', 1180, 400, 420, head=48)
+    dclass(d, 'ctx', '«datatype»<NL>诊断上下文', '工单描述<NL>设备类型与近期状态<NL>字段与脱敏（B07）', '',
+           1120, 620, 240, head=48)
+    dclass(d, 'adv', '«datatype»<NL>诊断建议', '建议内容<NL>是否留存（B07）', '', 1400, 620, 240, head=48)
+    dclass(d, 'cli', 'AI Agent服务客户端', '提供方与协议（B07）', '', 1260, 900, 260)
+    edge(d, 'u4', 'c4', 'aif', (1390, 130), (1390, 400), '«use» [运维人员请求AI辅助]', dashed=True,
+         lx=1398, ly=250, w=220, align='left')
+    edge(d, 'r3', 'aif', 'ctx', (1240, 502), (1240, 620), '«use»', dashed=True, lx=1248, ly=556, w=60,
+         align='left')
+    edge(d, 'r4', 'aif', 'adv', (1520, 502), (1520, 620), '«use»', dashed=True, lx=1528, ly=556, w=60,
+         align='left')
+    d.link('g4', REALIZE, 'cli', 'aif', (1380, 900), (1380, 502))
+    d.cell('note', '接口设计草图：签名为候选，参数与返回的具体字段随 B05、B07、B08 确定。'
+                   '<NL>三个适配器是 G1–G3 的实现形式，接入时按所选类型取其一，不顺序执行三种接入。'
+                   '<NL>执行结果区分成功、失败、未知，对应图2-13“设备返回可确定结果？”分支。'
+                   '<NL>AI 诊断接口只返回建议，不持有设备适配接口：AI 不操作设备，建议不触发 UC10。',
+           NOTE, 40, 880, 1060, 120)
+    return d.save()
+
+
+def er_rel(d, eid, a, b, p0, p1, ca, cb, label='', lx=0, ly=0, w=120, dashed=False, pts=()):
+    style = ER_REL + 'startArrow=%s;endArrow=%s;' % (ER_END[ca], ER_END[cb]) + ('dashed=1;' if dashed else '')
+    d.link(eid, style, a, b, p0, p1, pts)
+    if label:
+        txtcell(d, eid + 'l', label, lx, ly, w)
+
+
+def er_concept():
+    d = Dia('er-concept', '概念ER草图', 1640, 1400)
+    dclass(d, 'u', '用户', 'PK 用户标识<NL>姓名<NL>角色集合（B10）', '', 40, 420, 260)
+    dclass(d, 'dv', '设备', 'PK 设备标识<NL>接入类型：USB/蓝牙/Zigbee<NL>状态摘要<NL>型号与连接参数（B08）', '',
+           1340, 420, 260)
+    dclass(d, 'pm', '设备权限关联', 'PK 授权标识<NL>授权范围（B02）<NL>有效期（B02，可选）', '', 640, 40, 320)
+    dclass(d, 'rq', '设备使用申请', 'PK 申请标识<NL>提交时间<NL>使用说明<NL>处理状态（B01）', '', 640, 300, 320)
+    dclass(d, 'lg', '操作日志', 'PK 日志标识<NL>时间<NL>操作内容<NL>结果：成功/失败/未知<NL>其他字段（B06）', '',
+           640, 580, 320)
+    dclass(d, 'tk', '故障工单', 'PK 工单标识<NL>来源：人工报修/监测建单<NL>故障描述<NL>处理信息<NL>状态（B03）', '',
+           640, 860, 320)
+    dclass(d, 'tr', '工单处理记录（候选）', 'PK 记录标识<NL>处理内容 · 时间<NL>处理人（B03）', '', 360, 1120, 280,
+           dashed=True)
+    dclass(d, 'ad', 'AI诊断建议（候选）', 'PK 建议标识<NL>建议内容 · 时间<NL>请求人（B07）', '', 960, 1120, 280,
+           dashed=True)
+    dclass(d, 'op', '运维执行记录（候选）', 'PK 记录标识<NL>动作 · 时间 · 结果<NL>执行人（B05）', '', 1340, 800, 260,
+           dashed=True)
+    er_rel(d, 'r1', 'u', 'pm', (300, 440), (640, 100), '1', '0..*', '被授权', 420, 250, 60)
+    er_rel(d, 'r2', 'u', 'rq', (300, 460), (640, 360), '1', '0..*', '提交', 470, 388, 40)
+    er_rel(d, 'r3', 'u', 'lg', (300, 480), (640, 650), '1', '0..*', '执行', 470, 548, 40)
+    er_rel(d, 'r4', 'u', 'tk', (300, 500), (640, 930), '0..1', '0..*', '报修', 420, 700, 40)
+    er_rel(d, 'r5', 'dv', 'pm', (1340, 440), (960, 100), '1', '0..*', '授权对象', 1110, 250, 80)
+    er_rel(d, 'r6', 'dv', 'rq', (1340, 460), (960, 360), '1', '0..*', '目标', 1130, 388, 40)
+    er_rel(d, 'r7', 'dv', 'lg', (1340, 480), (960, 650), '1', '0..*', '被操作', 1140, 548, 60)
+    er_rel(d, 'r8', 'dv', 'tk', (1340, 500), (960, 930), '1', '0..*', '关联', 1150, 700, 40)
+    er_rel(d, 'r9', 'rq', 'pm', (800, 300), (800, 142), '0..1', '0..1', '据此授权（B01）', 810, 220, 140,
+           dashed=True)
+    er_rel(d, 'r10', 'tk', 'tr', (720, 1002), (500, 1120), '1', '0..*', '', dashed=True,
+           pts=[(720, 1070), (500, 1070)])
+    er_rel(d, 'r11', 'tk', 'ad', (880, 1002), (1100, 1120), '1', '0..*', '', dashed=True,
+           pts=[(880, 1070), (1100, 1070)])
+    er_rel(d, 'r12', 'dv', 'op', (1470, 542), (1470, 800), '1', '0..*', '', dashed=True)
+    d.cell('note', '实线实体对应图2-2的六个分析类；虚线实体与虚线联系为候选，取决于括号中的待确认事项。'
+                   '<NL>乌鸦脚记法：短竖线为 1，圆圈为 0，三叉为多。'
+                   '<NL>只表达概念与联系，不代表已确定的表结构、字段类型或外键；数据库选型见 B09。',
+           NOTE, 40, 1280, 1000, 96)
     return d.save()
 
 
@@ -646,3 +823,6 @@ print(device_state())
 print(ticket_state())
 print(component())
 print(deploy())
+print(package())
+print(design_adapters())
+print(er_concept())

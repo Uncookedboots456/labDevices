@@ -243,6 +243,10 @@ herdr agent get  review                    # 状态与 pane
 | 2026-11-03 | 暂不把新图嵌入 docx | 缺 `python-docx`，且需改 `build_report.py` 引用 | 调度方 |
 | 2026-11-03 | 场景消息清单抽到 `docs/report-build/scenes.py`，序列图/通信图与正文共用 | 10 张交互图与正文同源，避免两处漂移 | 调度方 |
 | 2026-11-03 | 全部 19 张图改为 draw.io 源，PNG 只作导出产物 | 用户要求“所有图都要用 draw.io 完成” | 用户 |
+| 2026-11-17 | 所有模型连线绑定 source/target，生成时校验端点 | 移动元素后连线不随动，XML 无法读出关系两端 | 调度方 |
+| 2026-11-17 | 进入实现前的待定事项编为 B01–B12，写入 `docs/development-plan.md`，逐条由用户确认 | B01–B10 沿用报告附录 B 编号，便于追溯 | 调度方 |
+| 2026-11-17 | 新增候选包图、适配接口设计类图、概念 ER 草图，暂不编入报告图号 | 内容依赖未确认事项，确认后再定稿 | 调度方 |
+| 2026-11-17 | 基准用例图 n25 穿过 INC2 的走线不在本轮修改，并入 B11 待用户决定 | 修改需求基准图需用户授权 | 调度方 |
 | 2026-11-18 | 仓库迁移至 GitHub 公开仓库（默认分支 `main`），建立 `.gitignore` 并通过 `origin` 同步多 agent 分支 | Windows 与 WSL 本地 worktree 路径不互通，统一走远端分支避免冲突与 `prune` 误删 | 用户 / Antigravity |
 
 ## 8. 未完成与下一步
@@ -250,6 +254,7 @@ herdr agent get  review                    # 状态与 pane
 1. **用例图标题与实际项目名不一致**：`lab-device-usecase.drawio` 内系统边界仍写“实验室设备统一管理
    与智能运维系统”，正式名称以 AGENTS.md 为准；改图时同步更新该文件，不要再造第二份基准。
 2. **git**：已完成初始提交并建立 GitHub 仓库（`main` 已包含 `.gitignore`），后续按各自隔离分支开发并通过 `origin` 合并。
+3. **进入实现前**：待确认事项 B01–B12 及阶段安排见 `docs/development-plan.md`，需用户逐条确认。
 
 ## 9. 仓库与多 Agent 工作树协作约定
 
