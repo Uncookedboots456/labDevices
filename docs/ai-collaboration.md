@@ -243,9 +243,26 @@ herdr agent get  review                    # 状态与 pane
 | 2026-11-03 | 暂不把新图嵌入 docx | 缺 `python-docx`，且需改 `build_report.py` 引用 | 调度方 |
 | 2026-11-03 | 场景消息清单抽到 `docs/report-build/scenes.py`，序列图/通信图与正文共用 | 10 张交互图与正文同源，避免两处漂移 | 调度方 |
 | 2026-11-03 | 全部 19 张图改为 draw.io 源，PNG 只作导出产物 | 用户要求“所有图都要用 draw.io 完成” | 用户 |
+| 2026-11-18 | 仓库迁移至 GitHub 公开仓库（默认分支 `main`），建立 `.gitignore` 并通过 `origin` 同步多 agent 分支 | Windows 与 WSL 本地 worktree 路径不互通，统一走远端分支避免冲突与 `prune` 误删 | 用户 / Antigravity |
 
 ## 8. 未完成与下一步
 
 1. **用例图标题与实际项目名不一致**：`lab-device-usecase.drawio` 内系统边界仍写“实验室设备统一管理
    与智能运维系统”，正式名称以 AGENTS.md 为准；改图时同步更新该文件，不要再造第二份基准。
-2. **git**：`AGENTS.md` 与 `docs/` 仍未提交，提交前确认范围。
+2. **git**：已完成初始提交并建立 GitHub 仓库（`main` 已包含 `.gitignore`），后续按各自隔离分支开发并通过 `origin` 合并。
+
+## 9. 仓库与多 Agent 工作树协作约定
+
+为避免多 agent 在 Windows 与 WSL 间因本地 worktree 路径不互通导致冲突，当前仓库采用 GitHub 统一同步：
+
+- **GitHub 仓库**：`https://github.com/Uncookedboots456/labDevices`（`PUBLIC`，默认分支 `main`）。
+- **`.gitignore` 范围**：`.claude/worktrees/`、`__pycache__/`、`~$*.docx`、`.claude/settings.local.json`。
+- **现有分支与职责**：
+  - `main`：主线基线（含 `c996953`、`d9a7413` 与 `.gitignore` 提交 `17665d2`）。
+  - `claude/edge-binding`：Claude Code 工作分支（`d9a7413`，模型连线端点绑定与生成校验）。
+  - `codex/uml-01a1ec74`：Codex 工作分支（`c996953`）。
+  - `agy/074714a5`：Antigravity 隔离工作分支（Windows 工作树 `C:/Users/comma/Documents/labDevices-agy-074714a5`，WSL Debian 工作树 `/home/uncookedboot/code/labDevices-agy-074714a5`，主克隆位于 `~/code/labDevices`）。
+- **操作红线**：
+  - 所有跨端与跨 agent 协作统一通过 `git fetch origin` / `git pull` / `git push` 同步，不再依赖跨系统本地 worktree 互访。
+  - 不要在 Windows 与 WSL 之间混用 `git worktree prune`，避免误删另一侧登记的 worktree 元数据。
+  - Windows 端 Antigravity 客户端 **Folders** 应挂载本地工作树路径（`C:/Users/comma/Documents/labDevices-agy-074714a5`），不要直接添加 `\\wsl.localhost\...` UNC 路径。
